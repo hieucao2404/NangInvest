@@ -4,60 +4,50 @@
  */
 package controller;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import dao.UserDAO;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.fluent.Form;
 import java.io.IOException;
-import java.io.PrintWriter;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.security.GeneralSecurityException;
-import java.util.Collections;
+import model.GoogleAccount;
+import util.CookieUtil;
 import model.User;
+import model.User.Role;
+import org.apache.http.client.fluent.Request;
+import util.Constants;
 
 /**
  *
  * @author Admin
  */
-@WebServlet(name = "LoginServlet", urlPatterns = { "/login", "/login/google" })
+@WebServlet(name = "LoginServlet", urlPatterns = {"/login", "/login/google"})
 public class LoginServlet extends HttpServlet {
 
     UserDAO userDAO = new UserDAO();
-    private static final String CLIENT_ID = "422211950963-r094spj3shieq20gkajosg6lplpppehv.apps.googleusercontent.com"; // google
+
     // oath
     // client
     // id
-
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet LoginServlet</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet LoginServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the
@@ -65,97 +55,111 @@ public class LoginServlet extends HttpServlet {
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String path = request.getServletPath();
-        if ("/login/google".equals(path)) {
-            String oathRrl = "https://accounts.google.com/o/oauth2/v2/auth?"
-                    + "client_id=" + CLIENT_ID
-                    + "&redirect_uri=" + request.getContextPath() + "/login/google"
-                    + "&response_type=code"
-                    + "&scope=email%20profile%20openid"
-                    + "&access_type=offline";
-            response.sendRedirect(oathRrl);
+        String code = request.getParameter("code");
+
+        if (code != null && !code.isEmpty()) {
+            try {
+                System.out.println("Received code" + code);
+                String accessToken = getToken(code);
+                System.out.println("AccToken" + accessToken);
+                GoogleAccount acc = getUserInfo(accessToken);
+                System.out.println(acc);
+                // check if exist
+                User user = userDAO.findByEmail(acc.getEmail());
+                if (user == null) {
+                    user = new User();
+                    user.setEmail(acc.getEmail());
+                    user.setName(acc.getName());
+                    user.setUserName(acc.getEmail().split("@")[0]);
+                    user.setPassword(null); //gg user
+                    user.setRole(Role.USER);
+                    user.setGoogleId(acc.getGoogleId());
+                    userDAO.addUser(user);
+
+                }
+                HttpSession session = request.getSession();
+                session.setAttribute("user", user);
+                // add cookie
+                CookieUtil.addCookie(response, "username", user.getUserName(), 3600);
+                CookieUtil.addCookie(response, "role", user.getRole().toString(), 3600);
+
+                response.sendRedirect(request.getContextPath() + "/public/homepage.jsp");
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath() + "/public/login.jsp?error=google_login_failed");
+            }
         } else {
-            request.getRequestDispatcher("public/login.jsp").forward(request, response);
+            response.sendRedirect(request.getContextPath() + "/public/login.jsp");
         }
+
     }
 
     /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request  servlet request
+     * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         String path = request.getServletPath();
+
         if ("/login".equals(path)) {
             String loginType = request.getParameter("loginType");
             if ("username".equals(loginType)) {
                 String username = request.getParameter("username").trim();
                 String password = request.getParameter("password").trim();
-                System.out.println("Username from form: '" + username + "'");
-                System.out.println("Password from form: '" + password + "'");
                 User user = userDAO.checkLoginByUsername(username, password);
                 if (user != null) {
                     HttpSession session = request.getSession();
                     session.setAttribute("user", user);
-                    response.sendRedirect(request.getContextPath() + "/public/homepage.jsp");
+                    //cookie
+                    CookieUtil.addCookie(response, "username", user.getUserName(), 3600);
+                    CookieUtil.addCookie(response, "role", user.getRole().toString(), 3600);
+
+                    String role = user.getRole().toString();
+                    if ("ADMIN".equals(role)) {
+                        response.sendRedirect(request.getContextPath() + "/admin/manageUsers.jsp");
+                    } else if ("USER".equals(role)) {
+                        response.sendRedirect(request.getContextPath() + "/public/homepage.jsp");
+                    }
                 } else {
                     request.setAttribute("error", "Invalid username or password");
                     request.getRequestDispatcher("public/login.jsp").forward(request, response);
                 }
-            } else if ("/login/google".equals(path)) {
-                String idTokenString = request.getParameter("id_token");
-                if (idTokenString != null) {
-                    try {
-                        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
-                                GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance())
-                                .setAudience(Collections.singletonList(CLIENT_ID)).build();
-                        GoogleIdToken idToken = verifier.verify(idTokenString);
-                        if (idToken != null) {
-                            GoogleIdToken.Payload payload = idToken.getPayload();
-                            String email = payload.getEmail();
-                            String name = (String) payload.get("name");
-
-                            User user = userDAO.findByEmail(email);
-                            if (user == null) {
-                                // create new user
-                                user = new User();
-                                user.setUserName(email.split("@")[0]);
-                                user.setEmail(email);
-                                user.setName(name);
-                                user.setRole(User.Role.USER);
-                                userDAO.addUser(user);
-                            }
-
-                            HttpSession session = request.getSession();
-                            session.setAttribute("user", user);
-                            response.sendRedirect(request.getContextPath() + "/users?action=list");
-                        } else {
-                            request.setAttribute("error", "Invalid Google ID token");
-                            request.getRequestDispatcher("public/login.jsp").forward(request, response);
-                        }
-                    } catch (GeneralSecurityException | IOException e) {
-                        request.setAttribute("error", "Error verifying Google token: " + e.getMessage());
-                        request.getRequestDispatcher("/public/login.jsp").forward(request, response);
-                    }
-                }
             }
-
         }
 
+    }
+
+    public static String getToken(final String code) throws ClientProtocolException, IOException {
+        String response = Request.Post(Constants.GOOGLE_LINK_GET_TOKEN).bodyForm(Form.form().add("client_id", Constants.GOOGLE_CLIENT_ID)
+                .add("client_secret", Constants.GOOGLE_CLIENT_SECRET)
+                .add("redirect_uri", Constants.GOOGLE_REDIRECT_URI).add("code", code)
+                .add("grant_type", Constants.GOOGLE_GRANT_TYPE).build())
+                .execute().returnContent().asString();
+        JsonObject jobj = new Gson().fromJson(response, JsonObject.class);
+        String accessToken = jobj.get("access_token").toString().replaceAll("\"", "");
+        return accessToken;
+    }
+
+    public static GoogleAccount getUserInfo(final String accessToken) throws ClientProtocolException, IOException {
+        String link = Constants.GOOGLE_LINK_GET_USER_INFO + accessToken;
+        String response = Request.Get(link).execute().returnContent().asString();
+        GoogleAccount gga = new Gson().fromJson(response, GoogleAccount.class);
+        return gga;
     }
 
     /**

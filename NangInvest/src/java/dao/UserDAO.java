@@ -38,6 +38,9 @@ public class UserDAO implements IUserDAO {
     private static final String CHECK_LOGIN_BY_GOOGLE_ID = "SELECT * FROM Users WHERE GoogleID = ?";
     private static final String UPDATE_GOOGLE_ID = "UPDATE Users SET GoogleID = ? WHERE Email = ?";
 
+    private static final String CHECK_EXIST_BY_USERNAME = "SELECT COUNT(*) FROM Users WHERE Username = ?";
+    private static final String CHECK_EXIST_BY_EMAIL = "SELECT COUNT(*) FROM Users WHERE Email = ?";
+
     @Override
     public void addUser(User user) {
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stm = conn.prepareStatement(ADD_USER)) {
@@ -194,12 +197,54 @@ public class UserDAO implements IUserDAO {
         }
     }
 
+    // check duplicate username
+    public boolean existsByUserName(String username) {
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stm = conn.prepareStatement(CHECK_EXIST_BY_USERNAME)) {
+            stm.setString(1, username);
+            ResultSet rs = stm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Eror checking username existence: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    //check duplicate email
+    public boolean existsByEmail(String email) {
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement stm = conn.prepareStatement(CHECK_EXIST_BY_EMAIL)) {
+            stm.setString(1, email);
+            ResultSet rs = stm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking email existence" + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public static void main(String[] args) {
         UserDAO userDAO = new UserDAO();
-        String testUsername = "john_doe";
-        String testPassword = "hashed_password_1";
-        User user = userDAO.checkLoginByUsername(testUsername, testPassword);
-        System.out.println(user != null ? "Found user: " + user.getUserName() : "User not found");
+        List<User> users = userDAO.getAllUsers();
+
+        if (users.isEmpty()) {
+            System.out.println("No users found.");
+        } else {
+            for (User user : users) {
+                System.out.println("ID: " + user.getUserId());
+                System.out.println("Username: " + user.getUserName());
+                System.out.println("Email: " + user.getEmail());
+                System.out.println("Role: " + user.getRole());
+                System.out.println("Name: " + user.getName());
+                System.out.println("Expertise: " + user.getExpertise());
+                System.out.println("Age: " + user.getAge());
+                System.out.println("-----------------------------");
+            }
+        }
     }
 
 }
