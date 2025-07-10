@@ -62,7 +62,7 @@ public class RecommendationEngine {
         List<Course> allCourses = courseDAO.findAll();
 
         //get user's predicted interests
-        List<String> userInterests = analyticsPredictor.predictUserIntersts(user.getUserId());
+        List<String> userInterests = analyticsPredictor.predictUserInterests(user.getUserId());
 
         //get user's purchase history
         List<Order> userOrders = orderDAO.findByUserId(user.getUserId());
@@ -132,7 +132,7 @@ public class RecommendationEngine {
         List<Book> allBooks = booksDAO.findAll();
 
         //get users predicted interests
-        List<String> userInterests = analyticsPredictor.predictUserIntersts(user.getUserId());
+        List<String> userInterests = analyticsPredictor.predictUserInterests(user.getUserId());
 
         //get user's click history
         List<AffiliateClick> userClicks = affiliateClickDAO.findByUserId(user.getUserId());
@@ -193,7 +193,7 @@ public class RecommendationEngine {
         List<Service> allServices = serviceDAO.findAll();
 
         // Get user's predicted interests
-        List<String> userInterests = analyticsPredictor.predictUserIntersts(user.getUserId());
+        List<String> userInterests = analyticsPredictor.predictUserInterests(user.getUserId());
 
         for (Service service : allServices) {
             double score = 0.0;
@@ -243,7 +243,7 @@ public class RecommendationEngine {
         personalizedContent.put("recommendedBooks", recommendBooks(user));
         personalizedContent.put("recommendedServices", recommendServices(user));
         personalizedContent.put("trendingTopics", analyticsPredictor.getTrendingTopics());
-        personalizedContent.put("userInterests", analyticsPredictor.predictUserIntersts(user.getUserId()));
+        personalizedContent.put("userInterests", analyticsPredictor.predictUserInterests(user.getUserId()));
 
         return personalizedContent;
     }

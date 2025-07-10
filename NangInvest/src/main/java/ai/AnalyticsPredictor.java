@@ -51,7 +51,7 @@ public class AnalyticsPredictor {
         this.blogDAO = new BlogDAO();
     }
 
-    public List<String> predictUserIntersts(Integer userId) {
+    public List<String> predictUserInterests(Integer userId) {
         Map<String, Integer> interestScores = new HashMap<>();
 
         //analyze user's course purchases
