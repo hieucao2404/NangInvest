@@ -1,6 +1,7 @@
 package model;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +14,7 @@ import jakarta.persistence.Table;
 
 /**
  * JPA Entity for UserCourses table (Many-to-Many relationship table)
+ * Includes progress tracking and enrollment dates
  * 
  * @author Admin
  */
@@ -29,6 +31,15 @@ public class UserCourses {
   @Column(name = "CourseID")
   private Integer courseId;
 
+  @Column(name = "Progress")
+  private Integer progress = 0;
+
+  @Column(name = "EnrollmentDate")
+  private Timestamp enrollmentDate;
+
+  @Column(name = "CompletionDate")
+  private Timestamp completionDate;
+
   // JPA relationships
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "UserID", insertable = false, updatable = false)
@@ -40,11 +51,14 @@ public class UserCourses {
 
   // Constructors
   public UserCourses() {
+    this.enrollmentDate = new Timestamp(System.currentTimeMillis());
   }
 
   public UserCourses(Integer userId, Integer courseId) {
     this.userId = userId;
     this.courseId = courseId;
+    this.progress = 0;
+    this.enrollmentDate = new Timestamp(System.currentTimeMillis());
   }
 
   // Getters and Setters
@@ -62,6 +76,30 @@ public class UserCourses {
 
   public void setCourseId(Integer courseId) {
     this.courseId = courseId;
+  }
+
+  public Integer getProgress() {
+    return progress;
+  }
+
+  public void setProgress(Integer progress) {
+    this.progress = progress;
+  }
+
+  public Timestamp getEnrollmentDate() {
+    return enrollmentDate;
+  }
+
+  public void setEnrollmentDate(Timestamp enrollmentDate) {
+    this.enrollmentDate = enrollmentDate;
+  }
+
+  public Timestamp getCompletionDate() {
+    return completionDate;
+  }
+
+  public void setCompletionDate(Timestamp completionDate) {
+    this.completionDate = completionDate;
   }
 
   public User getUser() {

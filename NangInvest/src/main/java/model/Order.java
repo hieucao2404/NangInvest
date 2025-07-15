@@ -16,7 +16,7 @@ import jakarta.persistence.Table;
  * @author Admin
  */
 @Entity
-@Table(name = "Order")
+@Table(name = "[Order]") // Escape the reserved keyword "Order" with square brackets for SQL Server
 public class Order {
 
   @Id

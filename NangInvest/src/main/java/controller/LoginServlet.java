@@ -4,14 +4,17 @@
  */
 package controller;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import dao.UserDAO;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.fluent.Form;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.fluent.Form;
+import org.apache.http.client.fluent.Request;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import dao.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,11 +22,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.GoogleAccount;
-import util.CookieUtil;
 import model.User;
 import model.User.Role;
-import org.apache.http.client.fluent.Request;
 import util.Constants;
+import util.CookieUtil;
 
 /**
  *
@@ -94,13 +96,14 @@ public class LoginServlet extends HttpServlet {
                 CookieUtil.addCookie(response, "username", user.getUserName(), 3600);
                 CookieUtil.addCookie(response, "role", user.getRole().toString(), 3600);
 
-                response.sendRedirect(request.getContextPath() + "/public/homepage.jsp");
+                response.sendRedirect(request.getContextPath() + "/dashboard");
             } catch (Exception e) {
                 e.printStackTrace();
-                response.sendRedirect(request.getContextPath() + "/public/login.jsp?error=google_login_failed");
+                response.sendRedirect(
+                        request.getContextPath() + "/public/login-registers.jsp?error=google_login_failed");
             }
         } else {
-            response.sendRedirect(request.getContextPath() + "/public/login.jsp");
+            response.sendRedirect(request.getContextPath() + "/public/login-registers.jsp");
         }
 
     }
@@ -132,15 +135,11 @@ public class LoginServlet extends HttpServlet {
                     CookieUtil.addCookie(response, "username", user.getUserName(), 3600);
                     CookieUtil.addCookie(response, "role", user.getRole().toString(), 3600);
 
-                    String role = user.getRole().toString();
-                    if ("ADMIN".equals(role)) {
-                        response.sendRedirect(request.getContextPath() + "/admin/manageUsers.jsp");
-                    } else if ("USER".equals(role)) {
-                        response.sendRedirect(request.getContextPath() + "/public/homepage.jsp");
-                    }
+                    // Redirect to dashboard servlet which will handle role-based routing
+                    response.sendRedirect(request.getContextPath() + "/dashboard");
                 } else {
                     request.setAttribute("error", "Invalid username or password");
-                    request.getRequestDispatcher("public/login.jsp").forward(request, response);
+                    request.getRequestDispatcher("public/login-registers.jsp").forward(request, response);
                 }
             }
         }

@@ -1,3 +1,4 @@
+
 package dao;
 
 import java.util.List;
@@ -25,6 +26,28 @@ public class CartDAO extends GenericDAOImpl<Cart, Integer> {
           "SELECT c FROM Cart c WHERE c.userId = :userId ORDER BY c.cartId", Cart.class);
       query.setParameter("userId", userId);
       return query.getResultList();
+    } finally {
+      em.close();
+    }
+  }
+
+  /**
+   * Remove a cart item by its cartId
+   */
+  public boolean removeCartItemById(Integer cartId) {
+    EntityManager em = getEntityManager();
+    try {
+      em.getTransaction().begin();
+      int count = em.createQuery("DELETE FROM Cart c WHERE c.cartId = :cartId")
+          .setParameter("cartId", cartId)
+          .executeUpdate();
+      em.getTransaction().commit();
+      return count > 0;
+    } catch (Exception e) {
+      if (em.getTransaction().isActive()) {
+        em.getTransaction().rollback();
+      }
+      throw new RuntimeException("Error removing cart item by cartId", e);
     } finally {
       em.close();
     }

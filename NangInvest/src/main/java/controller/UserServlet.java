@@ -4,16 +4,17 @@
  */
 package controller;
 
-import dao.UserDAO;
-import model.User;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+
+import dao.UserDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.User;
 
 @WebServlet(name = "UserServlet", urlPatterns = { "/users", "/users/*" })
 public class UserServlet extends HttpServlet {
@@ -148,11 +149,11 @@ public class UserServlet extends HttpServlet {
         // check for duplicate
         if (userDAO.existsByUsername(user.getUserName()) || userDAO.existsByEmail(user.getEmail())) {
             request.setAttribute("error", "Username or email already in use");
-            request.getRequestDispatcher("/public/login.jsp").forward(request, response);
+            request.getRequestDispatcher("/public/login-registers.jsp").forward(request, response);
         }
         userDAO.save(user);
 
         request.setAttribute("success", "Signup successful! Please login.");
-        request.getRequestDispatcher("/public/login.jsp").forward(request, response);
+        request.getRequestDispatcher("/public/login-registers.jsp").forward(request, response);
     }
 }

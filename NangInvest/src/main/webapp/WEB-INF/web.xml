@@ -5,6 +5,6 @@
         <listener-class>listener.AppContextListener</listener-class>
     </listener>
     <welcome-file-list>
-        <welcome-file>public/login.jsp</welcome-file>
+        <welcome-file>public/landing.jsp</welcome-file>
     </welcome-file-list>
 </web-app>

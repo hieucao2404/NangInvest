@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NangInvest URL Helper</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .url-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        background: #f9f9f9;
+      }
+      .success {
+        color: green;
+      }
+      .error {
+        color: red;
+      }
+      .info {
+        color: blue;
+      }
+      a {
+        display: block;
+        margin: 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚀 NangInvest Application URLs</h1>
+
+    <div class="url-section">
+      <h3>📍 Try These URLs (Pick the one that works):</h3>
+
+      <h4>Cart Test Page:</h4>
+      <a
+        href="http://localhost:8081/NangInvest/test/cart-test.jsp"
+        target="_blank"
+      >
+        → http://localhost:8081/NangInvest/test/cart-test.jsp
+      </a>
+
+      <h4>Main Application:</h4>
+      <a href="http://localhost:8081/NangInvest/" target="_blank">
+        → http://localhost:8081/NangInvest/ (Main App)
+      </a>
+
+      <h4>Courses Page:</h4>
+      <a href="http://localhost:8081/NangInvest/courses" target="_blank">
+        → http://localhost:8081/NangInvest/courses
+      </a>
+    </div>
+
+    <div class="url-section">
+      <h3>📝 Instructions:</h3>
+      <ol>
+        <li><strong>First:</strong> Make sure your Tomcat server is running</li>
+        <li><strong>Second:</strong> Make sure your application is deployed</li>
+        <li>
+          <strong>Third:</strong> Try the URLs above to find which context path
+          works
+        </li>
+        <li>
+          <strong>Fourth:</strong> Once you find the working context path, use
+          it for all other pages
+        </li>
+      </ol>
+    </div>
+
+    <div class="url-section">
+      <h3>🔧 Deployment Check:</h3>
+      <p>If none of the URLs work, check:</p>
+      <ul>
+        <li>Is Tomcat running on port 8081?</li>
+        <li>
+          Is the application deployed? Check Tomcat Manager or webapps folder
+        </li>
+        <li>Check Tomcat logs for deployment errors</li>
+        <li>Try: <code>mvn clean package</code> to rebuild the WAR file</li>
+      </ul>
+    </div>
+
+    <div class="url-section">
+      <h3>📊 Context Path Guide:</h3>
+      <p><strong>pom.xml finalName:</strong> NangInvest</p>
+      <p><strong>Expected Context:</strong> /NangInvest</p>
+      <p><strong>Alternative Context:</strong> /nanginvest (lowercase)</p>
+      <p><strong>WAR file name:</strong> NangInvest.war</p>
+    </div>
+  </body>
+</html>

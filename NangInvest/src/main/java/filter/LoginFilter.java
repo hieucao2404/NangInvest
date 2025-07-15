@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -114,7 +115,7 @@ public class LoginFilter implements Filter {
 
         if (user == null && roleFromCookie == null) {
             //not login in, redirect to login page
-            res.sendRedirect(req.getContextPath() + "/public/login.jsp");
+            res.sendRedirect(req.getContextPath() + "/public/login-registers.jsp");
             return;
         }
 

@@ -291,7 +291,7 @@ public class RecommendationEngine {
                     double priceDiff1 = Math.abs(c1.getPrice().doubleValue() - targetCourse.getPrice().doubleValue());
                     double priceDiff2 = Math.abs(c2.getPrice().doubleValue() - targetCourse.getPrice().doubleValue());
                     return Double.compare(priceDiff1, priceDiff2);
-                })
+                })  
                 .limit(limit)
                 .collect(Collectors.toList());
         

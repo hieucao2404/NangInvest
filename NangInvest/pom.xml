@@ -43,6 +43,8 @@
         </dependencies>
     </dependencyManagement>
     
+    
+    
     <dependencies>
         <!-- Jakarta EE Web APIs -->
         <dependency>
@@ -50,6 +52,8 @@
             <artifactId>jakarta.servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        
+        
         
         <dependency>
             <groupId>jakarta.servlet.jsp</groupId>
@@ -248,23 +252,12 @@
         </dependency>
         
         <!-- Test Dependencies -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
+         
         
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>5.5.0</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
     
     <build>
-        <finalName>nanginvest</finalName>
+        <finalName>NangInvest</finalName>
         
         <plugins>
             <!-- Compiler Plugin -->
@@ -305,8 +298,8 @@
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <port>8080</port>
-                    <path>/nanginvest</path>
+                    <port>8081</port>
+                    <path>/NangInvest</path>
                 </configuration>
             </plugin>
             

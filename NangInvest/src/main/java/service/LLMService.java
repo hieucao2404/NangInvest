@@ -1,9 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package service;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -11,6 +9,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -26,18 +25,31 @@ import model.User;
 public class LLMService {
 
     private final String apiKey;
-    private final HttpClient httpClient; // Corrected variable name
+    private final HttpClient httpClient;
     private final Gson gson;
     private final AnalyticsPredictor analyticsPredictor;
 
-    // OpenAI API endpoints
-    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-    private static final String MODEL = "gpt-3.5-turbo"; // or "gpt-4" if you have access
+    // Google Gemini API endpoint
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+    private static final String MODEL = "gemini-1.5-flash";
 
     public LLMService() {
-        // Load form environment variables or config
-        this.apiKey = System.getenv(
-                "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");
+        // Load from environment variables or config
+        String key = System.getenv("GEMINI_API_KEY");
+        // Fallback to system property if environment variable not set
+        if (key == null || key.isEmpty()) {
+            key = System.getProperty("gemini.api.key");
+        }
+        // Load from config file if not found in environment
+        if (key == null || key.isEmpty()) {
+            key = loadApiKeyFromConfig();
+        }
+        // Development fallback
+        if (key == null || key.isEmpty()) {
+            key = "AIzaSyCmNozjS1BMYtN2YXJrT1mU3hLUqDOReyE";
+        }
+        this.apiKey = key;
+
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
@@ -56,9 +68,13 @@ public class LLMService {
             // create the prompt
             String prompt = buildPrompt(userMessage, context, user);
 
-            // call OpenAi API
-            return callOpenAI(prompt);
+            // call Gemini API
+            return callGemini(prompt);
         } catch (Exception e) {
+            // Log the actual error for debugging
+            System.err.println("LLM Service Error: " + e.getMessage());
+            e.printStackTrace();
+
             // fall back
             return """
                     I'm having trouble accessing my advanced language capabilities right now.
@@ -75,7 +91,6 @@ public class LLMService {
 
     /**
      * Build platform context for better AI responses
-     *
      */
     private String buildPlatformContext(User user) {
         StringBuilder context = new StringBuilder();
@@ -94,11 +109,11 @@ public class LLMService {
                     .append(String.join(", ", trending.subList(0, Math.min(3, trending.size())))).append("\n");
         }
 
-        // User- specific context
+        // User-specific context
         if (user != null) {
             context.append("\nUSER PROFILE:\n");
             context.append("-Name: ").append(user.getName()).append("\n");
-            context.append(" - Expertise: ").append(user.getExpertise()).append("\n");
+            context.append("- Expertise: ").append(user.getExpertise()).append("\n");
             context.append("- Role: ").append(user.getRole()).append("\n");
 
             // User interests
@@ -107,7 +122,7 @@ public class LLMService {
                 context.append("- AI-Detected Interests: ").append(String.join(", ", interests)).append("\n");
             }
 
-            // Engaement level
+            // Engagement level
             Map<Integer, Double> churnRisk = analyticsPredictor.predictUserChurnRisk();
             Double userRisk = churnRisk.get(user.getUserId());
             if (userRisk != null) {
@@ -120,7 +135,7 @@ public class LLMService {
     }
 
     /**
-     * Build the complete prompt for OpenAI
+     * Build the complete prompt for Gemini
      */
     private String buildPrompt(String userMessage, String context, User user) {
         StringBuilder prompt = new StringBuilder();
@@ -149,31 +164,29 @@ public class LLMService {
     }
 
     /**
-     * call OpenAI API
+     * Call Google Gemini API
      */
-    private String callOpenAI(String prompt) throws Exception {
+    private String callGemini(String prompt) throws Exception {
         if (apiKey == null || apiKey.isEmpty()) {
-            throw new Exception("Open API key not configured");
+            throw new Exception("Gemini API key not configured");
         }
 
-        // Build request payload
+        // Build request payload for Gemini
         JsonObject requestBody = new JsonObject();
-        requestBody.addProperty("model", MODEL);
-        requestBody.addProperty("max_tokens", 500);
-        requestBody.addProperty("temperature", 0.7);
+        JsonArray contents = new JsonArray();
+        JsonObject content = new JsonObject();
+        JsonArray parts = new JsonArray();
+        JsonObject textPart = new JsonObject();
+        textPart.addProperty("text", prompt);
+        parts.add(textPart);
+        content.add("parts", parts);
+        contents.add(content);
+        requestBody.add("contents", contents);
 
-        JsonArray messages = new JsonArray();
-        JsonObject message = new JsonObject();
-        message.addProperty("role", "user");
-        message.addProperty("content", prompt);
-        messages.add(message);
-        requestBody.add("message", messages);
-
-        // create HTTP request
+        // Create HTTP request
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(OPENAI_API_URL))
+                .uri(URI.create(GEMINI_API_URL + "?key=" + apiKey))
                 .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + apiKey)
                 .timeout(Duration.ofSeconds(30))
                 .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(requestBody)))
                 .build();
@@ -184,32 +197,30 @@ public class LLMService {
         if (response.statusCode() == 200) {
             // Parse response
             JsonObject responseJson = gson.fromJson(response.body(), JsonObject.class);
-            JsonArray choices = responseJson.getAsJsonArray("choices");
-
-            if (choices.size() > 0) {
-                JsonObject choice = choices.get(0).getAsJsonObject();
-                JsonObject responseMessage = choice.getAsJsonObject("message");
-                String content = responseMessage.get("content").getAsString();
-
-                return content.trim();
-            } else {
-                throw new Exception("No response choices from OpenAI");
+            JsonArray candidates = responseJson.getAsJsonArray("candidates");
+            if (candidates != null && candidates.size() > 0) {
+                JsonObject candidate = candidates.get(0).getAsJsonObject();
+                JsonObject contentObj = candidate.getAsJsonObject("content");
+                JsonArray partsArray = contentObj.getAsJsonArray("parts");
+                if (partsArray != null && partsArray.size() > 0) {
+                    JsonObject part = partsArray.get(0).getAsJsonObject();
+                    return part.get("text").getAsString().trim();
+                }
+                throw new Exception("No content parts in Gemini response");
             }
+            throw new Exception("No candidates in Gemini response");
         } else {
             // Handle API errors
             JsonObject errorResponse = gson.fromJson(response.body(), JsonObject.class);
-            String errorMessage = "OpenAI API Error: " + response.statusCode();
-
+            String errorMessage = "Gemini API Error: " + response.statusCode();
             if (errorResponse.has("error")) {
                 JsonObject error = errorResponse.getAsJsonObject("error");
                 if (error.has("message")) {
                     errorMessage += " - " + error.get("message").getAsString();
                 }
             }
-
             throw new Exception(errorMessage);
         }
-
     }
 
     /**
@@ -227,20 +238,21 @@ public class LLMService {
 
             // Create enhanced prompt that includes your AI's response
             String enhancedPrompt = buildEnhancedPrompt(userMessage, user, yourAIResponse);
-            String llmResponse = callOpenAI(enhancedPrompt);
+            String llmResponse = callGemini(enhancedPrompt);
 
             // Add signature to show it's enhanced
-            return llmResponse + "\n\n*🤖 Enhanced with AI language understanding*";
+            return llmResponse + "\n\n*🤖 Enhanced with Gemini AI*";
 
         } catch (Exception e) {
             // Fallback to your original AI response
+            System.err.println("LLM Service Error: " + e.getMessage());
+            e.printStackTrace();
             return yourAIResponse;
         }
     }
 
     /**
-     * Build enhanced prompt that combines your AI data with natural language
-     * processing
+     * Build enhanced prompt that combines your AI data with natural language processing
      */
     private String buildEnhancedPrompt(String userMessage, User user, String aiResponse) {
         StringBuilder prompt = new StringBuilder();
@@ -264,5 +276,21 @@ public class LLMService {
         prompt.append("ENHANCED RESPONSE:");
 
         return prompt.toString();
+    }
+
+    /**
+     * Load API key from config.properties file
+     */
+    private String loadApiKeyFromConfig() {
+        try {
+            Properties props = new Properties();
+            try (FileInputStream fis = new FileInputStream("config.properties")) {
+                props.load(fis);
+                return props.getProperty("gemini.api.key");
+            }
+        } catch (IOException e) {
+            // Config file not found or not readable, return null
+            return null;
+        }
     }
 }

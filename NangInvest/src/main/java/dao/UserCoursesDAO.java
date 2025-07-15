@@ -214,4 +214,22 @@ public class UserCoursesDAO extends GenericDAOImpl<UserCourses, UserCoursesId> {
       em.close();
     }
   }
+
+  /**
+   * Find a specific UserCourses record by user ID and course ID
+   */
+  public UserCourses findByUserAndCourse(Integer userId, Integer courseId) {
+    EntityManager em = getEntityManager();
+    try {
+      TypedQuery<UserCourses> query = em.createQuery(
+          "SELECT uc FROM UserCourses uc WHERE uc.userId = :userId AND uc.courseId = :courseId",
+          UserCourses.class);
+      query.setParameter("userId", userId);
+      query.setParameter("courseId", courseId);
+      List<UserCourses> results = query.getResultList();
+      return results.isEmpty() ? null : results.get(0);
+    } finally {
+      em.close();
+    }
+  }
 }

@@ -14,8 +14,39 @@ import model.Blog;
  * @author Admin
  */
 public class BlogDAO extends GenericDAOImpl<Blog, Integer> {
+  /**
+   * Get all blogs for display (ordered by creation date descending)
+   */
+  public List<Blog> findAllForDisplay() {
+    EntityManager em = getEntityManager();
+    try {
+      TypedQuery<Blog> query = em.createQuery(
+          "SELECT b FROM Blog b ORDER BY b.blogName", Blog.class);
+      List<Blog> blogs = query.getResultList();
+      System.out.println("findAllForDisplay: Found " + blogs.size() + " blogs");
+      return blogs;
+    } catch (Exception e) {
+      System.err.println("Error in findAllForDisplay: " + e.getMessage());
+      throw e;
+    } finally {
+      em.close();
+    }
+  }
 
   // Custom finder methods
+
+  /**
+   * Find blog by ID
+   */
+  public Optional<Blog> findById(Integer blogId) {
+    EntityManager em = getEntityManager();
+    try {
+      Blog blog = em.find(Blog.class, blogId);
+      return Optional.ofNullable(blog);
+    } finally {
+      em.close();
+    }
+  }
 
   /**
    * Find blog by name
@@ -59,6 +90,23 @@ public class BlogDAO extends GenericDAOImpl<Blog, Integer> {
           "SELECT b FROM Blog b WHERE b.blogName LIKE :partialName ORDER BY b.blogName", Blog.class);
       query.setParameter("partialName", "%" + partialName + "%");
       return query.getResultList();
+    } finally {
+      em.close();
+    }
+  }
+
+  public List<Blog> findByBlogNameContainingPaginated(String partialName, int offset, int limit) {
+    EntityManager em = getEntityManager();
+    try {
+      TypedQuery<Blog> query = em.createQuery(
+          "SELECT b FROM Blog b WHERE b.blogName LIKE :partialName ORDER BY b.blogName", Blog.class);
+      query.setParameter("partialName", "%" + partialName + "%");
+      query.setFirstResult(offset);
+      query.setMaxResults(limit);
+      List<Blog> blogs = query.getResultList();
+      System.out
+          .println("findByBlogNameContainingPaginated: Found " + blogs.size() + " blogs for search: " + partialName);
+      return blogs;
     } finally {
       em.close();
     }
@@ -131,7 +179,9 @@ public class BlogDAO extends GenericDAOImpl<Blog, Integer> {
           "SELECT b FROM Blog b ORDER BY b.blogName", Blog.class);
       query.setFirstResult(offset);
       query.setMaxResults(limit);
-      return query.getResultList();
+      List<Blog> blogs = query.getResultList();
+      System.out.println("findBlogsPaginated: Found " + blogs.size() + " blogs");
+      return blogs;
     } finally {
       em.close();
     }
@@ -148,7 +198,9 @@ public class BlogDAO extends GenericDAOImpl<Blog, Integer> {
       query.setParameter("topic", topic);
       query.setFirstResult(offset);
       query.setMaxResults(limit);
-      return query.getResultList();
+      List<Blog> blogs = query.getResultList();
+      System.out.println("findBlogsByTopicPaginated: Found " + blogs.size() + " blogs for topic: " + topic);
+      return blogs;
     } finally {
       em.close();
     }
@@ -175,7 +227,8 @@ public class BlogDAO extends GenericDAOImpl<Blog, Integer> {
   public long getBlogCount() {
     EntityManager em = getEntityManager();
     try {
-      TypedQuery<Long> query = em.createQuery("SELECT COUNT(b) FROM Blog b", Long.class);
+      TypedQuery<Long> query = em.createQuery(
+          "SELECT COUNT(b) FROM Blog b", Long.class);
       return query.getSingleResult();
     } finally {
       em.close();
@@ -191,6 +244,18 @@ public class BlogDAO extends GenericDAOImpl<Blog, Integer> {
       TypedQuery<Long> query = em.createQuery(
           "SELECT COUNT(b) FROM Blog b WHERE b.topic = :topic", Long.class);
       query.setParameter("topic", topic);
+      return query.getSingleResult();
+    } finally {
+      em.close();
+    }
+  }
+
+  public long getBlogCountByNameContaining(String partialName) {
+    EntityManager em = getEntityManager();
+    try {
+      TypedQuery<Long> query = em.createQuery(
+          "SELECT COUNT(b) FROM Blog b WHERE b.blogName LIKE :partialName", Long.class);
+      query.setParameter("partialName", "%" + partialName + "%");
       return query.getSingleResult();
     } finally {
       em.close();
