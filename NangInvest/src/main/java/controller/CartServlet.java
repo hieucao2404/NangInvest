@@ -91,7 +91,7 @@ public class CartServlet extends HttpServlet {
             } else if ("remove".equals(action)) {
                 handleRemoveItem(request);
             } else if ("clear".equals(action)) {
-                handleClearCart(user.getUserId());  
+                handleClearCart(user.getUserId());
             }
 
             // Redirect to cart page to show updated cart
@@ -99,9 +99,7 @@ public class CartServlet extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute(ERROR_ATTR, "Error processing cart operation: " + e.getMessage());
-            loadCartData(request, user.getUserId());
-            request.getRequestDispatcher(CART_JSP).forward(request, response);
+            response.sendRedirect(request.getContextPath() + "/user/cart?error=operation_failed");
         }
     }
 

@@ -121,6 +121,9 @@ public class CartDAO extends GenericDAOImpl<Cart, Integer> {
    * Update quantity for cart item
    */
   public void updateQuantity(Integer cartId, Integer newQuantity) {
+    if (newQuantity <= 0) {
+      throw new IllegalArgumentException("Quantity must be positive");
+    }
     EntityManager em = getEntityManager();
     try {
       em.getTransaction().begin();

@@ -41,53 +41,52 @@
             <c:if test="${not empty cartItems}">
                 <div class="cart-items">
                     <c:forEach var="item" items="${cartItems}">
-                        <div class="cart-item">
-                            <div class="item-details">
-                                <div class="item-image">
-                                    <c:choose>
-                                        <c:when test="${not empty item.course.imageUrl}">
-                                            <img src="${item.course.imageUrl}" alt="${item.course.courseName}" style="width:100%;height:100%;object-fit:cover;">
-                                        </c:when>
-                                        <c:otherwise>
-                                            <div class="placeholder-image">📚</div>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-                                <div class="item-info">
-                                    <h3>${item.course.courseName}</h3>
-                                    <p class="item-type">Course</p>
-                                    <p class="item-price">
-                                        <c:choose>
-                                            <c:when test="${item.course.isFree}">
-                                                Free
-                                            </c:when>
-                                            <c:otherwise>
-                                                $<fmt:formatNumber value="${item.course.price}" pattern="#,##0.00"/>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="item-quantity">
-                                <span>Quantity:</span>
-                                <div class="quantity-controls">
-                                    <button onclick="updateQuantity('${item.cartItem.cartId}', '${item.cartItem.quantity - 1}')" 
-                                            ${item.cartItem.quantity <= 1 ? 'disabled' : ''}>-</button>
-                                    <span class="quantity-value">${item.cartItem.quantity}</span>
-                                    <button onclick="updateQuantity('${item.cartItem.cartId}', '${item.cartItem.quantity + 1}')">+</button>
-                                </div>
-                            </div>
-                            
-                            <div class="item-actions">
-                                <button class="btn btn-danger btn-sm" 
-                                        onclick="removeItem('${item.cartItem.cartId}')">
-                                    Remove
-                                </button>
-                            </div>
-                            
-                        </div>
-                    </c:forEach>
+    <div class="cart-item">
+        <div class="item-details">
+            <div class="item-image">
+                <c:choose>
+                    <c:when test="${not empty item.course.imageUrl}">
+                        <img src="${item.course.imageUrl}" alt="${item.course.courseName}" style="width:100%;height:100%;object-fit:cover;">
+                    </c:when>
+                    <c:otherwise>
+                        <div class="placeholder-image">📚</div>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+            <div class="item-info">
+                <h3>${item.course.courseName}</h3>
+                <p class="item-type">Course</p>
+                <p class="item-price">
+                    <c:choose>
+                        <c:when test="${item.course.isFree}">
+                            Free
+                        </c:when>
+                        <c:otherwise>
+                            $<fmt:formatNumber value="${item.course.price}" pattern="#,##0.00"/>
+                        </c:otherwise>
+                    </c:choose>
+                </p>
+            </div>
+        </div>
+        
+        <div class="item-quantity">
+            <span>Quantity:</span>
+            <div class="quantity-controls">
+                <button onclick="updateQuantity('<c:out value="${item.cartItem.cartId}"/>', '${item.cartItem.quantity - 1}')" 
+                        ${item.cartItem.quantity <= 1 ? 'disabled' : ''}>-</button>
+                <span class="quantity-value">${item.cartItem.quantity}</span>
+                <button onclick="updateQuantity('<c:out value="${item.cartItem.cartId}"/>', '${item.cartItem.quantity + 1}')">+</button>
+            </div>
+        </div>
+        
+        <div class="item-actions">
+            <button class="btn btn-danger btn-sm" 
+                    onclick="removeItem('<c:out value="${item.cartItem.cartId}"/>')">
+                Remove
+            </button>
+        </div>
+    </div>
+</c:forEach>
                 </div>
 
                 <div class="cart-summary">
@@ -95,7 +94,7 @@
                         <h3>Order Summary</h3>
                         <div class="summary-row">
                             <span>Items (${cartCount}):</span>
-                            <span>$<fmt:formatNumber value="${cartTotal}" pattern="#,##0.00"/></span>
+                            <span>$<fmt:formatNumber value="${totalPrice}" pattern="#,##0.00"/></span>
                         </div>
                         <div class="summary-row">
                             <span>Shipping:</span>
@@ -162,18 +161,34 @@
         }
 
         function removeItem(cartId) {
-            if (confirm('Are you sure you want to remove this item from your cart?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '${pageContext.request.contextPath}/user/cart';
-                form.innerHTML = `
-                    <input type="hidden" name="action" value="remove">
-                    <input type="hidden" name="cartId" value="${cartId}">
-                `;
-                document.body.appendChild(form);
-                form.submit();
-            }
+    console.log("removeItem called with cartId:", cartId);
+    if (confirm('Are you sure you want to remove this item from your cart?')) {
+        try {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '${pageContext.request.contextPath}/user/cart';
+
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'remove';
+
+            const cartIdInput = document.createElement('input');
+            cartIdInput.type = 'hidden';
+            cartIdInput.name = 'cartId';
+            cartIdInput.value = cartId;
+
+            form.appendChild(actionInput);
+            form.appendChild(cartIdInput);
+            document.body.appendChild(form);
+            console.log("Submitting form for cartId:", cartId);
+            form.submit();
+        } catch (error) {
+            console.error("Error submitting remove form:", error);
+            alert("Failed to remove item. Please try again.");
         }
+    }
+}
 
         function clearCart() {
             if (confirm('Are you sure you want to clear your entire cart?')) {
