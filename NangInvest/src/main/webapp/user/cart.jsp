@@ -106,10 +106,10 @@
                         </div>
                         
                         <div class="cart-actions">
-                            <a href="${pageContext.request.contextPath}/user/checkout.jsp" 
-                               class="btn btn-primary btn-block">
-                                Proceed to Checkout
-                            </a>
+                            <form method="POST" action="${pageContext.request.contextPath}/user/cart" style="margin-bottom: 0;">
+                                <input type="hidden" name="action" value="checkout" />
+                                <button type="submit" class="btn btn-primary btn-block">Proceed to Checkout</button>
+                            </form>
                             <button onclick="clearCart()" class="btn btn-secondary btn-block">
                                 Clear Cart
                             </button>

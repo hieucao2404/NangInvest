@@ -6,6 +6,7 @@ package controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +77,26 @@ public class DashboardServlet extends HttpServlet {
         request.setAttribute("dashboardData", dashboardData);
         request.getRequestDispatcher("/admin/analytics.jsp").forward(request, response);
 
+        List<Map<String, Object>> recentActivities = new ArrayList<>();
+
+        Map<String, Object> act1 = new HashMap<>();
+        act1.put("icon", "👤");
+        act1.put("title", "New User Registration");
+        act1.put("description", "John Doe signed up for the investment course");
+        act1.put("timeAgo", "2 hours ago");
+        recentActivities.add(act1);
+
+        Map<String, Object> act2 = new HashMap<>();
+        act2.put("icon", "📝");
+        act2.put("title", "Blog Post Published");
+        act2.put("description", "\"Market Analysis Q3 2025\" went live");
+        act2.put("timeAgo", "4 hours ago");
+        recentActivities.add(act2);
+
+        // ...add more activities as needed...
+
+        dashboardData.put("recentActivities", recentActivities);
+
     }
 
     private void handleUserDashboard(HttpServletRequest request, HttpServletResponse response, User user)
@@ -136,7 +157,7 @@ public class DashboardServlet extends HttpServlet {
         userAnalytics.put("completedCourses", completedCourses);
 
         // Prepare dashboard data
-        Map<String, Object> dashboardData = new HashMap<>();    
+        Map<String, Object> dashboardData = new HashMap<>();
         dashboardData.put("user", user);
         dashboardData.put("recommendations", recommendations);
         dashboardData.put("userAnalytics", userAnalytics);

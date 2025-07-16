@@ -88,7 +88,7 @@ public class UserServlet extends HttpServlet {
     // Show add user form
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("admin/userForm.jsp").forward(request, response);
+        request.getRequestDispatcher("admin/forms/userForm.jsp").forward(request, response);
     }
 
     // Show edit user form
@@ -98,7 +98,7 @@ public class UserServlet extends HttpServlet {
         Optional<User> userOpt = userDAO.findById(id);
         if (userOpt.isPresent()) {
             request.setAttribute("user", userOpt.get());
-            request.getRequestDispatcher("admin/userForm.jsp").forward(request, response);
+            request.getRequestDispatcher("admin/forms/userForm.jsp").forward(request, response);
         } else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found");
         }

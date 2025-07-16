@@ -203,6 +203,30 @@ public class CartDAO extends GenericDAOImpl<Cart, Integer> {
       return save(newCart);
     }
   }
+  
+  /**
+ * Remove all cart items associated with a specific product ID
+ * @param productId The ID of the product (course) to remove from carts
+ * @return true if at least one cart item was deleted, false otherwise
+ */
+public boolean removeCartItemsByProductId(Integer productId) {
+    EntityManager em = getEntityManager();
+    try {
+        em.getTransaction().begin();
+        int count = em.createQuery("DELETE FROM Cart c WHERE c.productId = :productId")
+                .setParameter("productId", productId)
+                .executeUpdate();
+        em.getTransaction().commit();
+        return count > 0;
+    } catch (Exception e) {
+        if (em.getTransaction().isActive()) {
+            em.getTransaction().rollback();
+        }
+        throw new RuntimeException("Error removing cart items by productId: " + productId, e);
+    } finally {
+        em.close();
+    }
+}
 
   /**
    * Get most popular products in carts

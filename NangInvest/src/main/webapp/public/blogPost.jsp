@@ -41,6 +41,23 @@ BlogDAO().findById(blogId).orElse(null); } catch (Exception e) { // handle error
     </style>
   </head>
   <body>
+    <!-- Role-based Header Selection -->
+    <c:choose>
+      <c:when
+        test="${sessionScope.user != null && sessionScope.user.role == 'ADMIN'}"
+      >
+        <%-- Admin Header --%> <%@include file="../includes/admin-header.jsp" %>
+      </c:when>
+      <c:when
+        test="${sessionScope.user != null && sessionScope.user.role == 'USER'}"
+      >
+        <%-- User Header --%> <%@include file="../includes/user-header.jsp" %>
+      </c:when>
+      <c:otherwise>
+        <%-- Public Header for non-logged in users --%> <%@include
+        file="../includes/public-header.jsp" %>
+      </c:otherwise>
+    </c:choose>
     <div class="blog-container">
       <c:choose>
         <c:when test="${blog != null}">

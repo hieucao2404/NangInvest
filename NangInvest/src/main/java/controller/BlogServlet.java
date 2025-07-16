@@ -108,6 +108,10 @@ public class BlogServlet extends HttpServlet {
                 // List all blogs (public view)
                 listBlogsPublic(request, response);
             }
+        } else if (pathInfo.equals("/public/landing.jsp") || pathInfo.equals("/public/landing")) {
+            // Landing page
+            showLandingPage(request, response);
+            return;
         } else {
             // Default to public blog list
             listBlogsPublic(request, response);
@@ -141,6 +145,8 @@ public class BlogServlet extends HttpServlet {
 
         if (action != null) {
             switch (action) {
+                case "list":
+                    listBlogsAdmin(request, response);
                 case "create":
                     createBlog(request, response);
                     break;
@@ -222,8 +228,6 @@ public class BlogServlet extends HttpServlet {
         request.getRequestDispatcher("/public/blog.jsp").forward(request, response);
     }
 
-
-
     /**
      * List blogs for admin view with pagination
      */
@@ -234,7 +238,7 @@ public class BlogServlet extends HttpServlet {
         int offset = (pageNumber - 1) * BLOGS_PER_PAGE;
 
         // Get all blogs for admin with pagination
-        List<Blog> blogs = blogDAO.findBlogsPaginated(offset, BLOGS_PER_PAGE);
+        List<Blog> blogs = blogDAO.findAll();
         long totalBlogs = blogDAO.getBlogCount();
         int totalPages = (int) Math.ceil((double) totalBlogs / BLOGS_PER_PAGE);
 
@@ -244,8 +248,8 @@ public class BlogServlet extends HttpServlet {
         // Set request attributes
         request.setAttribute("blogs", blogs);
         request.setAttribute("topics", topics);
-        request.setAttribute("currentPage", pageNumber);
-        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("currentPage", 1);
+        request.setAttribute("totalPages", 1);
 
         // Forward to admin blog list page
         request.getRequestDispatcher("/admin/blog_list.jsp").forward(request, response);
@@ -440,6 +444,17 @@ public class BlogServlet extends HttpServlet {
         } else {
             response.sendRedirect(request.getContextPath() + "/admin/blogs?error=No+blog+ID+provided");
         }
+    }
+
+    /**
+     * Show latest blogs for landing page
+     */
+    private void showLandingPage(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Get the latest 3 blogs (or any number you want)
+        List<Blog> latestBlogs = blogDAO.findBlogsPaginated(0, 3);
+        request.setAttribute("latestBlogs", latestBlogs);
+        request.getRequestDispatcher("/public/landing.jsp").forward(request, response);
     }
 
     /**

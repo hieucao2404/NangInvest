@@ -135,6 +135,11 @@ public class LoginServlet extends HttpServlet {
                     CookieUtil.addCookie(response, "username", user.getUserName(), 3600);
                     CookieUtil.addCookie(response, "role", user.getRole().toString(), 3600);
 
+                    if ("on".equals(request.getParameter("rememberMe"))) {
+                        CookieUtil.addCookie(response, "rememberedUser", user.getUserName(), 7 * 24 * 60 * 60); // 7
+                                                                                                                // days
+                    }
+
                     // Redirect to dashboard servlet which will handle role-based routing
                     response.sendRedirect(request.getContextPath() + "/dashboard");
                 } else {

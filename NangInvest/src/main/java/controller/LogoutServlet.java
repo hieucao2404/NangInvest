@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import util.CookieUtil;
 
 /**
  * Servlet for handling user logout
@@ -38,7 +39,7 @@ public class LogoutServlet extends HttpServlet {
         }
       }
     }
-
+    CookieUtil.deleteCookie(response, "rememberedUser");
     // Redirect to login page
     response.sendRedirect(request.getContextPath() + "/public/login-registers.jsp");
   }

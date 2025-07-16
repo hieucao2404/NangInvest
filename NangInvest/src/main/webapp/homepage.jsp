@@ -331,8 +331,9 @@
         
         <div class="author-info">
           <div class="author-avatar">Y</div>
-          <span>By NangInvet</span>
-          
+          <span>By Nang </span>
+          <span>•</span>
+          <span>Launched 16 days ago</span>
         </div>
         
         <!-- Subscribe Section for non-users -->
@@ -444,53 +445,23 @@
       <!-- Recent Content/Posts -->
       <section class="recent-posts">
         <h2 class="section-title">Latest Investment Insights</h2>
-        
         <div class="post-list">
-          <article class="post-item">
-            <h3 class="post-title">
-              <a href="#">Hiểu về tâm lý thị trường trong đầu tư chứng khoán</a>
-            </h3>
-            <p class="post-excerpt">
-              Tâm lý đầu tư đóng vai trò quan trọng trong việc ra quyết định. Bài viết này sẽ giúp bạn 
-              nhận diện và kiểm soát cảm xúc khi đầu tư...
-            </p>
-            <div class="post-date">3 days ago</div>
-          </article>
-          
-          <article class="post-item">
-            <h3 class="post-title">
-              <a href="#">Xây dựng danh mục đầu tư đa dạng cho người mới bắt đầu</a>
-            </h3>
-            <p class="post-excerpt">
-              Diversification là nguyên tắc cơ bản nhất trong đầu tư. Hướng dẫn chi tiết cách phân bổ 
-              tài sản hiệu quả...
-            </p>
-            <div class="post-date">1 week ago</div>
-          </article>
-          
-          <article class="post-item">
-            <h3 class="post-title">
-              <a href="#">Phân tích kỹ thuật vs Phân tích cơ bản: Nên chọn phương pháp nào?</a>
-            </h3>
-            <p class="post-excerpt">
-              So sánh chi tiết hai phương pháp phân tích đầu tư phổ biến và cách áp dụng phù hợp 
-              với từng nhà đầu tư...
-            </p>
-            <div class="post-date">2 weeks ago</div>
-          </article>
-          
-          <article class="post-item">
-            <h3 class="post-title">
-              <a href="#">Chiến lược đầu tư dài hạn trong thời đại số</a>
-            </h3>
-            <p class="post-excerpt">
-              Công nghệ thay đổi cách chúng ta đầu tư. Khám phá những chiến lược mới phù hợp 
-              với kỷ nguyên digital...
-            </p>
-            <div class="post-date">3 weeks ago</div>
-          </article>
+          <c:forEach var="blog" items="${latestBlogs}">
+            <article class="post-item">
+              <h3 class="post-title">
+                <a href="${pageContext.request.contextPath}/public/blogPost.jsp?blogId=${blog.blogId}">
+                  ${blog.blogName}
+                </a>
+              </h3>
+              <p class="post-excerpt">
+                ${blog.excerpt}
+              </p>
+              <div class="post-date">
+                <fmt:formatDate value="${blog.createdAt}" pattern="dd MMM yyyy"/>
+              </div>
+            </article>
+          </c:forEach>
         </div>
-        
         <div style="text-align: center; margin-top: 2rem;">
           <a href="${pageContext.request.contextPath}/public/blog.jsp" class="read-more" 
              style="padding: 0.75rem 2rem; border: 1px solid #667eea; border-radius: 6px; text-decoration: none;">

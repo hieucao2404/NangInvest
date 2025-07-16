@@ -23,6 +23,34 @@ import model.User;
  */
 @WebServlet(name = "CartServlet", urlPatterns = { "/user/cart" })
 public class CartServlet extends HttpServlet {
+    /**
+     * Handle checkout: sum cart, update analytics revenue, clear cart, redirect
+     */
+    private void handleCheckout(User user, HttpServletRequest request)
+            throws IOException {
+        try {
+            List<Cart> cartItems = cartDAO.findByUserId(user.getUserId());
+            BigDecimal total = BigDecimal.ZERO;
+
+            for (Cart cartItem : cartItems) {
+                Course course = courseDAO.findById(cartItem.getProductId()).orElse(null);
+                if (course != null && !course.isFreeOfCharge()) {
+                    total = total.add(course.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
+                }
+            }
+
+            // Update revenue in AnalyticsPredictor
+            ai.AnalyticsPredictor analytics = new ai.AnalyticsPredictor();
+            analytics.addRevenue(total);
+
+            // Clear cart
+            cartDAO.clearCartByUserId(user.getUserId());
+        } catch (Exception e) {
+            log("Error during checkout: " + e.getMessage(), e);
+            throw new IOException("Checkout failed: " + e.getMessage(), e);
+        }
+    }
+
     private static final long serialVersionUID = 1L;
 
     private static final String CART_JSP = "/user/cart.jsp";
@@ -92,6 +120,8 @@ public class CartServlet extends HttpServlet {
                 handleRemoveItem(request);
             } else if ("clear".equals(action)) {
                 handleClearCart(user.getUserId());
+            } else if ("checkout".equals(action)) {
+                handleCheckout(user, request);
             }
 
             // Redirect to cart page to show updated cart

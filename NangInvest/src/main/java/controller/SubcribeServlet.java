@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "SubcribeServlet", urlPatterns = { "/api/subscribe" })
+@WebServlet(name = "SubcribeServlet", urlPatterns = { "/subscribe" })
 public class SubcribeServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)

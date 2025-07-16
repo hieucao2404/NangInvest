@@ -427,8 +427,8 @@ uri="http://java.sun.com/jsp/jstl/functions"%>
           <div class="stat-header">
             <div>
               <h3 class="stat-number">
-                ${dashboardData.analytics.activeCourses != null ?
-                dashboardData.analytics.activeCourses : '56'}
+                ${dashboardData.analytics.totalCourses != null ?
+                dashboardData.analytics.totalCourses : '56'}
               </h3>
               <p class="stat-label">Active Courses</p>
             </div>
@@ -441,8 +441,8 @@ uri="http://java.sun.com/jsp/jstl/functions"%>
           <div class="stat-header">
             <div>
               <h3 class="stat-number">
-                ${dashboardData.analytics.blogPosts != null ?
-                dashboardData.analytics.blogPosts : '128'}
+                ${dashboardData.analytics.totalBlogs != null ?
+                dashboardData.analytics.totalBlogs : '128'}
               </h3>
               <p class="stat-label">Blog Posts</p>
             </div>
@@ -457,28 +457,28 @@ uri="http://java.sun.com/jsp/jstl/functions"%>
         <h2 class="section-title">Quick Actions</h2>
         <div class="quick-actions-grid">
           <a
-            href="${pageContext.request.contextPath}/admin/blogForm.jsp"
+            href="${pageContext.request.contextPath}/admin/blogs?action=create"
             class="quick-action"
           >
             <span class="quick-action-icon">✍️</span>
             <h3 class="quick-action-title">Create Blog Post</h3>
           </a>
           <a
-            href="${pageContext.request.contextPath}/admin/blog_list.jsp"
+            href="${pageContext.request.contextPath}/admin/blogs"
             class="quick-action"
           >
             <span class="quick-action-icon">📋</span>
             <h3 class="quick-action-title">Manage Blogs</h3>
           </a>
           <a
-            href="${pageContext.request.contextPath}/admin/users.jsp"
+            href="${pageContext.request.contextPath}/admin/manageUsers.jsp"
             class="quick-action"
           >
             <span class="quick-action-icon">👤</span>
             <h3 class="quick-action-title">User Management</h3>
           </a>
           <a
-            href="${pageContext.request.contextPath}/admin/courses.jsp"
+            href="${pageContext.request.contextPath}/courses?action=adminManage"
             class="quick-action"
           >
             <span class="quick-action-icon">🎓</span>
@@ -594,46 +594,16 @@ uri="http://java.sun.com/jsp/jstl/functions"%>
       <section class="recent-activity">
         <h2 class="section-title">Recent Activity</h2>
         <ul class="activity-list">
-          <li class="activity-item">
-            <div class="activity-icon">👤</div>
-            <div class="activity-content">
-              <h3 class="activity-title">New User Registration</h3>
-              <p class="activity-description">
-                John Doe signed up for the investment course
-              </p>
-            </div>
-            <span class="activity-time">2 hours ago</span>
-          </li>
-          <li class="activity-item">
-            <div class="activity-icon">📝</div>
-            <div class="activity-content">
-              <h3 class="activity-title">Blog Post Published</h3>
-              <p class="activity-description">
-                "Market Analysis Q3 2025" went live
-              </p>
-            </div>
-            <span class="activity-time">4 hours ago</span>
-          </li>
-          <li class="activity-item">
-            <div class="activity-icon">💰</div>
-            <div class="activity-content">
-              <h3 class="activity-title">Course Purchase</h3>
-              <p class="activity-description">
-                Advanced Portfolio Management course sold
-              </p>
-            </div>
-            <span class="activity-time">6 hours ago</span>
-          </li>
-          <li class="activity-item">
-            <div class="activity-icon">🎓</div>
-            <div class="activity-content">
-              <h3 class="activity-title">Course Completion</h3>
-              <p class="activity-description">
-                Sarah completed "Investment Basics"
-              </p>
-            </div>
-            <span class="activity-time">1 day ago</span>
-          </li>
+          <c:forEach var="activity" items="${recentActivities}">
+            <li class="activity-item">
+              <div class="activity-icon">${activity.icon}</div>
+              <div class="activity-content">
+                <h3 class="activity-title">${activity.title}</h3>
+                <p class="activity-description">${activity.description}</p>
+              </div>
+              <span class="activity-time">${activity.timeAgo}</span>
+            </li>
+          </c:forEach>
         </ul>
       </section>
 

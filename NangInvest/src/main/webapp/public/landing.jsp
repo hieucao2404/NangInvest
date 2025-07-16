@@ -1,12 +1,14 @@
 <%-- Document : landing Created on : Jul 11, 2025, 10:30:00 AM Author : Admin
-Description: Landing page for visitors (before login) --%> <%@page
-contentType="text/html" pageEncoding="UTF-8"%>
+Description: Landing page for visitors (before login) with English text --%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NangInvest - Đầu tư thông minh cùng Yến Phạm</title>
+    <title>NangInvest - Smart Investing with Yen Pham</title>
     <link
       rel="stylesheet"
       href="${pageContext.request.contextPath}/css/style.css"
@@ -313,15 +315,9 @@ contentType="text/html" pageEncoding="UTF-8"%>
         <nav class="nav">
           <div class="logo">NangInvest</div>
           <div class="nav-links">
-            <a href="${pageContext.request.contextPath}/public/blog.jsp"
-              >Blog</a
-            >
-            <a href="${pageContext.request.contextPath}/public/courses.jsp"
-              >Courses</a
-            >
-            <a href="${pageContext.request.contextPath}/homepage.jsp"
-              >Home</a
-            >
+            <a href="${pageContext.request.contextPath}/public/blog.jsp">Blog</a>
+            <a href="${pageContext.request.contextPath}/public/courses.jsp">Courses</a>
+            <a href="${pageContext.request.contextPath}/homepage.jsp">Home</a>
             <a
               href="${pageContext.request.contextPath}/public/login-registers.jsp"
               class="btn"
@@ -337,25 +333,24 @@ contentType="text/html" pageEncoding="UTF-8"%>
       <div class="container hero-container">
         <img
           src="https://i0.wp.com/thepresentwriter.com/wp-content/uploads/2024/05/DSC01159-round.png"
-          alt="Yến Phạm"
+          alt="Yen Pham"
           class="author-image"
         />
-        <h1 class="hero-title">Xin chào! Tôi là Yến Phạm</h1>
+        <h1 class="hero-title">Hello! I'm Yen Pham</h1>
         <p class="hero-subtitle">
-          Chuyên gia tài chính và đầu tư với hơn 15 năm kinh nghiệm. Tôi giúp
-          bạn xây dựng nền tảng tài chính vững chắc thông qua kiến thức đầu tư
-          thực tiễn.
+          A finance and investment expert with over 15 years of experience. I help
+          you build a strong financial foundation through practical investment knowledge.
         </p>
         <div>
           <a
             href="${pageContext.request.contextPath}/public/courses.jsp"
             class="btn"
-            >Courses explore</a
+            >Explore Courses</a
           >
           <a
             href="${pageContext.request.contextPath}/public/blog.jsp"
             class="btn btn-outline"
-            >Blogs</a
+            >Read Blogs</a
           >
         </div>
 
@@ -374,74 +369,54 @@ contentType="text/html" pageEncoding="UTF-8"%>
       <div class="container">
         <h2 class="section-title">Latest Blog Posts</h2>
         <div class="blog-grid">
-          <div class="blog-card">
-            <img
-              src="https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?q=80&w=1000"
-              alt="Đầu tư chứng khoán"
-              class="blog-image"
-            />
-            <div class="blog-content">
-              <div class="blog-date">10 tháng 7, 2025</div>
-              <h3 class="blog-title">
-                Chiến lược đầu tư chứng khoán cho người mới bắt đầu
-              </h3>
-              <p class="blog-excerpt">
-                Khám phá những nguyên tắc cơ bản và chiến lược đầu tư hiệu quả
-                dành cho người mới, giúp bạn xây dựng danh mục đầu tư bền vững.
-              </p>
-              <a
-                href="${pageContext.request.contextPath}/public/blog-detail.jsp"
-                class="btn btn-outline"
-                >Đọc tiếp</a
+          <c:choose>
+            <c:when test="${not empty latestBlogs}">
+              <c:forEach var="blog" items="${latestBlogs}">
+                <div class="blog-card">
+                  <img
+                    src="${blog.imageUrl}"
+                    alt="${blog.blogName}"
+                    class="blog-image"
+                  />
+                  <div class="blog-content">
+                    <span class="blog-topic">${blog.topic}</span>
+                    <h3 class="blog-title">
+                      <a
+                        href="${pageContext.request.contextPath}/public/blogPost.jsp?blogId=${blog.blogId}"
+                      >
+                        ${blog.blogName}
+                      </a>
+                    </h3>
+                    <p class="blog-excerpt">
+                      <c:choose>
+                        <c:when test="${not empty blog.detailedContent}">
+                          ${fn:substring(blog.detailedContent.replaceAll("<[^>]*>", ""), 0, 120)}...
+                        </c:when>
+                        <c:otherwise>No preview available.</c:otherwise>
+                      </c:choose>
+                    </p>
+                    <a
+                      href="${pageContext.request.contextPath}/public/blogPost.jsp?blogId=${blog.blogId}"
+                      class="btn btn-outline"
+                      >Read More</a
+                    >
+                  </div>
+                </div>
+              </c:forEach>
+            </c:when>
+            <c:otherwise>
+              <div
+                style="
+                  text-align: center;
+                  color: #888;
+                  font-size: 1.1rem;
+                  margin: 2rem 0;
+                "
               >
-            </div>
-          </div>
-
-          <div class="blog-card">
-            <img
-              src="https://images.unsplash.com/photo-1604594849809-dfedbc827105?q=80&w=1000"
-              alt="Đầu tư bất động sản"
-              class="blog-image"
-            />
-            <div class="blog-content">
-              <div class="blog-date">5 tháng 7, 2025</div>
-              <h3 class="blog-title">
-                5 yếu tố quyết định thành công khi đầu tư bất động sản
-              </h3>
-              <p class="blog-excerpt">
-                Phân tích những yếu tố quan trọng nhất quyết định thành công
-                trong lĩnh vực đầu tư bất động sản dài hạn tại Việt Nam.
-              </p>
-              <a
-                href="${pageContext.request.contextPath}/public/blog-detail.jsp"
-                class="btn btn-outline"
-                >Đọc tiếp</a
-              >
-            </div>
-          </div>
-
-          <div class="blog-card">
-            <img
-              src="https://images.unsplash.com/photo-1621761191319-c6fb62004040?q=80&w=1000"
-              alt="Quản lý tài chính cá nhân"
-              class="blog-image"
-            />
-            <div class="blog-content">
-              <div class="blog-date">1 tháng 7, 2025</div>
-              <h3 class="blog-title">
-                Quản lý tài chính cá nhân: Phương pháp 50-30-20
-              </h3>
-              <p class="blog-excerpt">
-                Tìm hiểu về phương pháp 50-30-20 giúp quản lý chi tiêu, tiết
-                kiệm và đầu tư hiệu quả ngay cả khi thu nhập không cao.
-              </p>
-              <a
-                href="${pageContext.request.contextPath}/public/blog-detail.jsp"
-                class="btn btn-outline"
-                >Đọc tiếp</a
-              >
-            </div>
-          </div>
+                No blog articles found.
+              </div>
+            </c:otherwise>
+          </c:choose>
         </div>
       </div>
     </section>
@@ -449,22 +424,21 @@ contentType="text/html" pageEncoding="UTF-8"%>
     <!-- About Section -->
     <section class="about-section">
       <div class="container about-container">
-        <h2 class="section-title">Về NangInvest</h2>
+        <h2 class="section-title">About NangInvest</h2>
         <p class="about-text">
-          NangInvest là nơi chia sẻ kiến thức và kinh nghiệm đầu tư thực tiễn,
-          được sáng lập bởi Yến Phạm - chuyên gia tài chính với hơn 15 năm kinh
-          nghiệm trong lĩnh vực tư vấn đầu tư.
+          NangInvest is a platform for sharing practical investment knowledge and
+          experience, founded by Yen Pham, a finance expert with over 15 years
+          in investment consulting.
         </p>
         <p class="about-text">
-          Sứ mệnh của chúng tôi là cung cấp kiến thức đầu tư chất lượng, dễ hiểu
-          và áp dụng được cho người Việt Nam. Chúng tôi tin rằng ai cũng có thể
-          đạt được tự do tài chính thông qua việc học hỏi và áp dụng các nguyên
-          tắc đầu tư đúng đắn.
+          Our mission is to provide high-quality, easy-to-understand, and actionable
+          investment education for everyone. We believe anyone can achieve financial
+          freedom through learning and applying sound investment principles.
         </p>
         <a
           href="${pageContext.request.contextPath}/public/about.jsp"
           class="btn"
-          >Tìm hiểu thêm</a
+          >Learn More</a
         >
       </div>
     </section>
@@ -472,19 +446,19 @@ contentType="text/html" pageEncoding="UTF-8"%>
     <!-- Newsletter Section -->
     <section class="newsletter-section">
       <div class="container newsletter-container">
-        <h2 class="newsletter-title">Bản tin "Đầu tư mỗi tuần"</h2>
+        <h2 class="newsletter-title">Weekly Investment Newsletter</h2>
         <p class="newsletter-description">
-          Đăng ký nhận bản tin miễn phí với những phân tích thị trường, cơ hội
-          đầu tư và mẹo tài chính hữu ích hàng tuần từ Yến Phạm.
+          Subscribe to our free newsletter for weekly market analysis, investment
+          opportunities, and helpful financial tips from Yen Pham.
         </p>
         <form class="newsletter-form">
           <input
             type="email"
-            placeholder="Email của bạn"
+            placeholder="Your Email"
             class="newsletter-input"
             required
           />
-          <button type="submit" class="btn">Đăng ký</button>
+          <button type="submit" class="btn">Subscribe</button>
         </form>
       </div>
     </section>
@@ -494,20 +468,20 @@ contentType="text/html" pageEncoding="UTF-8"%>
       <div class="container">
         <div class="footer-links">
           <a href="${pageContext.request.contextPath}/public/about.jsp"
-            >Về chúng tôi</a
+            >About Us</a
           >
           <a href="${pageContext.request.contextPath}/public/courses.jsp"
-            >Khóa học</a
+            >Courses</a
           >
           <a href="${pageContext.request.contextPath}/public/blog.jsp">Blog</a>
           <a href="${pageContext.request.contextPath}/public/contact.jsp"
-            >Liên hệ</a
+            >Contact</a
           >
           <a href="${pageContext.request.contextPath}/public/terms.jsp"
-            >Điều khoản</a
+            >Terms</a
           >
         </div>
-        <p>&copy; 2025 NangInvest. Nâng tầm kiến thức đầu tư của bạn.</p>
+        <p>© 2025 NangInvest. Elevate your investment knowledge.</p>
       </div>
     </footer>
 
