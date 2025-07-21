@@ -1,10 +1,5 @@
 package controller;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-
 import dao.CartDAO;
 import dao.CourseDAO;
 import jakarta.servlet.ServletException;
@@ -16,43 +11,14 @@ import jakarta.servlet.http.HttpSession;
 import model.Cart;
 import model.Course;
 import model.User;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * CartServlet handles cart operations including viewing, updating, and removing
- * items
- */
 @WebServlet(name = "CartServlet", urlPatterns = { "/user/cart" })
 public class CartServlet extends HttpServlet {
-    /**
-     * Handle checkout: sum cart, update analytics revenue, clear cart, redirect
-     */
-    private void handleCheckout(User user, HttpServletRequest request)
-            throws IOException {
-        try {
-            List<Cart> cartItems = cartDAO.findByUserId(user.getUserId());
-            BigDecimal total = BigDecimal.ZERO;
-
-            for (Cart cartItem : cartItems) {
-                Course course = courseDAO.findById(cartItem.getProductId()).orElse(null);
-                if (course != null && !course.isFreeOfCharge()) {
-                    total = total.add(course.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
-                }
-            }
-
-            // Update revenue in AnalyticsPredictor
-            ai.AnalyticsPredictor analytics = new ai.AnalyticsPredictor();
-            analytics.addRevenue(total);
-
-            // Clear cart
-            cartDAO.clearCartByUserId(user.getUserId());
-        } catch (Exception e) {
-            log("Error during checkout: " + e.getMessage(), e);
-            throw new IOException("Checkout failed: " + e.getMessage(), e);
-        }
-    }
-
     private static final long serialVersionUID = 1L;
-
     private static final String CART_JSP = "/user/cart.jsp";
     private static final String ERROR_ATTR = "error";
     private static final String LOGIN_REDIRECT = "/public/login-register.jsp";
@@ -67,75 +33,91 @@ public class CartServlet extends HttpServlet {
         courseDAO = new CourseDAO();
     }
 
-    /**
-     * Handles GET requests to display cart contents
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        System.out.println("CartServlet doGet invoked"); // Debug
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
 
         if (user == null) {
+            System.out.println("User not logged in, redirecting to login"); // Debug
             response.sendRedirect(request.getContextPath() + LOGIN_REDIRECT);
             return;
         }
 
         try {
-            // Load cart data with course details
             loadCartData(request, user.getUserId());
-
-            // Forward to cart.jsp
+            System.out.println("Forwarding to cart.jsp"); // Debug
             request.getRequestDispatcher(CART_JSP).forward(request, response);
-
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("Error loading cart: " + e.getMessage()); // Debug
             request.setAttribute(ERROR_ATTR, "Error loading cart: " + e.getMessage());
             request.getRequestDispatcher(CART_JSP).forward(request, response);
         }
     }
 
-    /**
-     * Handles POST requests for cart operations (update, remove, clear)
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        System.out.println("CartServlet doPost invoked"); // Debug
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
 
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + LOGIN_REDIRECT);
+            System.out.println("User not logged in, redirecting to login"); // Debug
+            response.sendRedirect(request.getContextPath() + LOGIN_REDIRECT + "?redirect=/user/cart");
             return;
         }
 
         String action = request.getParameter("action");
+        System.out.println("Action received: " + action); // Debug
+        if (action == null) {
+            System.out.println("No action parameter, redirecting to cart"); // Debug
+            response.sendRedirect(request.getContextPath() + "/user/cart?error=invalid_action");
+            return;
+        }
 
         try {
-            if ("update".equals(action)) {
-                handleUpdateQuantity(request);
-            } else if ("remove".equals(action)) {
-                handleRemoveItem(request);
-            } else if ("clear".equals(action)) {
-                handleClearCart(user.getUserId());
-            } else if ("checkout".equals(action)) {
-                handleCheckout(user, request);
+            switch (action) {
+                case "update":
+                    System.out.println("Handling update action"); // Debug
+                    handleUpdateQuantity(request);
+                    response.sendRedirect(request.getContextPath() + "/user/cart?updated=true");
+                    break;
+                case "remove":
+                    System.out.println("Handling remove action"); // Debug
+                    handleRemoveItem(request);
+                    response.sendRedirect(request.getContextPath() + "/user/cart?removed=true");
+                    break;
+                case "clear":
+                    System.out.println("Handling clear action"); // Debug
+                    handleClearCart(user.getUserId());
+                    response.sendRedirect(request.getContextPath() + "/user/cart?cleared=true");
+                    break;
+                case "checkout":
+                    System.out.println("Handling checkout, forwarding to /user/checkout"); // Debug
+                    handleCheckout(user, request, response);
+                    return; // Exit after forward
+                default:
+                    System.out.println("Invalid action: " + action); // Debug
+                    response.sendRedirect(request.getContextPath() + "/user/cart?error=invalid_action");
+                    return;
             }
-
-            // Redirect to cart page to show updated cart
-            response.sendRedirect(request.getContextPath() + "/user/cart");
-
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("Error processing action: " + e.getMessage()); // Debug
             response.sendRedirect(request.getContextPath() + "/user/cart?error=operation_failed");
         }
     }
 
-    /**
-     * Load cart data with course details for display
-     */
+    private void handleCheckout(User user, HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        System.out.println("Forwarding to /user/checkout for user: " + user.getUserId()); // Debug
+        request.getRequestDispatcher("/user/checkout").forward(request, response);
+    }
+
     private void loadCartData(HttpServletRequest request, int userId) {
         try {
             List<Cart> cartItems = cartDAO.findByUserId(userId);
@@ -143,27 +125,26 @@ public class CartServlet extends HttpServlet {
             BigDecimal totalPrice = BigDecimal.ZERO;
 
             for (Cart cartItem : cartItems) {
-                // Assuming productId refers to courseId for courses
-                var courseOpt = courseDAO.findById(cartItem.getProductId());
-                if (courseOpt.isPresent()) {
-                    Course course = courseOpt.get();
+                Course course = courseDAO.findById(cartItem.getProductId()).orElse(null);
+                if (course != null) {
                     CartItemWithDetails itemWithDetails = new CartItemWithDetails();
                     itemWithDetails.setCartItem(cartItem);
                     itemWithDetails.setCourse(course);
                     cartItemsWithDetails.add(itemWithDetails);
-
-                    // Calculate total price
-                    BigDecimal itemTotal = course.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
-                    totalPrice = totalPrice.add(itemTotal);
+                    if (!course.isFreeOfCharge()) {
+                        BigDecimal itemTotal = course.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+                        totalPrice = totalPrice.add(itemTotal);
+                    }
                 }
             }
 
             request.setAttribute("cartItems", cartItemsWithDetails);
             request.setAttribute("totalPrice", totalPrice);
             request.setAttribute("cartCount", cartItems.size());
-
+            System.out.println("Cart data loaded: " + cartItems.size() + " items, total: " + totalPrice); // Debug
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("Error loading cart data: " + e.getMessage()); // Debug
             request.setAttribute(ERROR_ATTR, "Error loading cart data: " + e.getMessage());
             request.setAttribute("cartItems", new ArrayList<>());
             request.setAttribute("totalPrice", BigDecimal.ZERO);
@@ -171,14 +152,10 @@ public class CartServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Handle updating item quantity in cart
-     */
     private void handleUpdateQuantity(HttpServletRequest request) {
         try {
             int cartId = Integer.parseInt(request.getParameter("cartId"));
             int quantity = Integer.parseInt(request.getParameter("quantity"));
-
             if (quantity > 0) {
                 cartDAO.updateQuantity(cartId, quantity);
             }
@@ -187,13 +164,10 @@ public class CartServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Handle removing item from cart
-     */
     private void handleRemoveItem(HttpServletRequest request) {
         try {
             int cartId = Integer.parseInt(request.getParameter("cartId"));
-            System.out.println("Removing cartId: " + cartId); // Debug log
+            System.out.println("Removing cartId: " + cartId); // Debug
             boolean removed = cartDAO.removeCartItemById(cartId);
             if (!removed) {
                 request.setAttribute(ERROR_ATTR, "Failed to remove item - No matching cart item found.");
@@ -203,16 +177,10 @@ public class CartServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Handle clearing all items from cart
-     */
     private void handleClearCart(int userId) {
         cartDAO.clearCartByUserId(userId);
     }
 
-    /**
-     * Inner class to hold cart item with course details
-     */
     public static class CartItemWithDetails {
         private Cart cartItem;
         private Course course;

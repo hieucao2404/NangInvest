@@ -1,5 +1,5 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%> <%@page
-import="model.User"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> <%@ page
+import="model.User" %>
 <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
@@ -37,6 +37,12 @@ import="model.User"%>
       >
         <i class="fas fa-users"></i> Users
       </a>
+      <a
+        href="${pageContext.request.contextPath}/admin/orders"
+        class="nav-item"
+      >
+        <i class="fas fa-shopping-cart"></i> Orders
+      </a>
       <a href="${pageContext.request.contextPath}/analytics" class="nav-item">
         <i class="fas fa-chart-line"></i> Analytics
       </a>
@@ -44,9 +50,11 @@ import="model.User"%>
 
     <!-- User Menu -->
     <div class="admin-user-menu">
+      <!-- User Info -->
       <div class="user-info">
         <span>Welcome, ${sessionScope.user.name}</span>
       </div>
+      <!-- User Actions -->
       <div class="user-actions">
         <a
           href="${pageContext.request.contextPath}/user/homepage.jsp"

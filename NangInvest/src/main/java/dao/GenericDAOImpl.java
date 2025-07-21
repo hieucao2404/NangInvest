@@ -6,9 +6,11 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import util.JPAUtil;
 
+import org.hibernate.cfg.Configuration;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.SessionFactory;
 
 /**
  * Generic DAO implementation using JPA
@@ -20,11 +22,13 @@ public class GenericDAOImpl<T, ID> implements GenericDAO<T, ID> {
 
     private final Class<T> entityClass;
 
+
     @SuppressWarnings("unchecked")
     public GenericDAOImpl() {
         this.entityClass = (Class<T>) ((ParameterizedType) getClass()
                 .getGenericSuperclass()).getActualTypeArguments()[0];
     }
+   
 
     protected EntityManager getEntityManager() {
         return JPAUtil.gEntityManager();

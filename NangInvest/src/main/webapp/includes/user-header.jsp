@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%> <%@taglib prefix="c"
+<%@taglib prefix="c"
 uri="http://java.sun.com/jsp/jstl/core" %>
 
 <nav class="user-header">
@@ -9,11 +9,16 @@ uri="http://java.sun.com/jsp/jstl/core" %>
 
     <div class="user-menu">
       <a href="${pageContext.request.contextPath}/user/courses.jsp">Courses</a>
-      <a href="${pageContext.request.contextPath}/user/books.jsp">Books</a>
+      <a href="${pageContext.request.contextPath}/books">Books</a>
       <a href="${pageContext.request.contextPath}/user/services.jsp"
         >Services</a
       >
       <a href="${pageContext.request.contextPath}/user/blog">Blog</a>
+      <a
+        href="${pageContext.request.contextPath}/orders"
+        class="btn btn-outline btn-sm"
+        >Order History</a
+      >
     </div>
 
     <div class="user-actions">

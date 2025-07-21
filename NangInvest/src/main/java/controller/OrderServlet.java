@@ -4,13 +4,25 @@
  */
 package controller;
 
+import dao.CartDAO;
+import dao.CourseDAO;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.List;
+
+import dao.OrderDAO;
+import dao.UserCoursesDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import model.Cart;
+import model.Course;
+import model.Order;
+import model.User;
 
 /**
  *
@@ -19,69 +31,89 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet(name = "OrderServlet", urlPatterns = {"/orders"})
 public class OrderServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet OrderServlet</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet OrderServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
+    private OrderDAO orderDAO;
+    private CartDAO cartDAO;
+    private CourseDAO courseDAO;
+    private UserCoursesDAO userCoursesDAO;
+
+    @Override
+    public void init() throws ServletException {
+        orderDAO = new OrderDAO();
+        cartDAO = new CartDAO();
+        courseDAO = new CourseDAO();
+        userCoursesDAO = new UserCoursesDAO();
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+
+        if (user == null) {
+            // Not logged in, redirect to login
+            response.sendRedirect(request.getContextPath() + "/public/login-register.jsp?redirect=/orders");
+            return;
+        }
+
+        // Default action: list all orders for this user
+        List<Order> orders = orderDAO.findByUserId(user.getUserId());
+        request.setAttribute("orders", orders);
+
+        // Forward to JSP to display orders
+        request.getRequestDispatcher("/user/orders.jsp").forward(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        doGet(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
+    private void handleCheckout(HttpServletRequest request, HttpServletResponse response, User user) throws ServletException, IOException {
+        try {
+            List<Cart> cartItems = cartDAO.findByUserId(user.getUserId());
+            if (cartItems.isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/user/cart?error=empty_cart");
+                return;
+            }
+            BigDecimal totalRevenue = BigDecimal.ZERO;
+            List<Integer> courseIds = new ArrayList<>();
+            for (Cart cartItem : cartItems) {
+                Course course = courseDAO.findById(cartItem.getProductId()).orElse(null);
+                if (course != null && !course.isFreeOfCharge()) {
+                    BigDecimal quantity = BigDecimal.valueOf(cartItem.getQuantity());
+                    totalRevenue = totalRevenue.add(course.getPrice().multiply(quantity));
+                    courseIds.add(cartItem.getProductId());
+                    
+                    Order order = new Order(user.getUserId(), cartItem.getProductId(), "Completed", course.getPrice().multiply(quantity));
+                    orderDAO.create(order);
+                    
+                    userCoursesDAO.enrollUserInCourse(user.getUserId(), cartItem.getProductId());
+                }
+            }
+
+            new ai.AnalyticsPredictor().addRevenue(totalRevenue);
+
+            //clear cart
+            cartDAO.clearCartByUserId(user.getUserId());
+
+            //create individual orders for each course
+            response.sendRedirect(request.getContextPath() + "/user/order-confirmation.jsp?success=order_placed");
+        }catch(Exception e){
+            e.printStackTrace();
+            response.sendRedirect(request.getContextPath() + "/user/cart?error=checkout_failed");
+    }
+}
+
+/**
+ * Returns a short description of the servlet.
+ *
+ * @return a String containing servlet description
+ */
+@Override
+public String getServletInfo() {
+        return "Handles order listing and checkout processing";
     }// </editor-fold>
 
 }

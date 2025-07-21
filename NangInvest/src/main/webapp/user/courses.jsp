@@ -262,6 +262,26 @@
             cursor: not-allowed;
         }
 
+        .progress-container {
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 20px;
+            background: #27ae60;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+            transition: width 0.3s ease;
+        }
+
         .alert {
             padding: 1rem;
             border-radius: 6px;
@@ -390,6 +410,26 @@
                 ⚠️ You have already purchased this course.
             </div>
         </c:if>
+        <c:if test="${param.error == 'invalid_course'}">
+            <div class="alert alert-error">
+                ⚠️ Invalid course selected.
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'course_not_found'}">
+            <div class="alert alert-error">
+                ⚠️ Course not found.
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'invalid_course_id'}">
+            <div class="alert alert-error">
+                ⚠️ Invalid course ID.
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'add_to_cart_failed'}">
+            <div class="alert alert-error">
+                ⚠️ Failed to add course to cart.
+            </div>
+        </c:if>
 
         <!-- Search and Filter Section -->
         <section class="search-filter-section">
@@ -456,7 +496,12 @@
                                 </c:choose>
                                 
                                 <!-- Course Badge -->
+                                <c:set var="isEnrolled" value="${sessionScope.user != null && userCoursesDAO.isUserEnrolledInCourse(sessionScope.user.userId, course.courseId)}"/>
+                                <c:set var="hasPurchased" value="${sessionScope.user != null && orderDAO.hasUserPurchasedProduct(sessionScope.user.userId, course.courseId)}"/>
                                 <c:choose>
+                                    <c:when test="${isEnrolled}">
+                                        <span class="course-badge badge-enrolled">Enrolled</span>
+                                    </c:when>
                                     <c:when test="${course.isFreeOfCharge()}">
                                         <span class="course-badge badge-free">Free</span>
                                     </c:when>
@@ -484,10 +529,20 @@
                                             Free
                                         </c:when>
                                         <c:otherwise>
-                                            $<fmt:formatNumber value="${course.effectivePrice}" pattern="#,##0.00"/>
+                                            $<fmt:formatNumber value="${course.price}" pattern="#,##0.00"/>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
+
+                                <!-- Progress Bar for Enrolled Courses -->
+                                <c:if test="${isEnrolled}">
+                                    <c:set var="progress" value="${userCoursesDAO.findByUserAndCourse(sessionScope.user.userId, course.courseId).progress}"/>
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: ${progress}%">${progress}%</div>
+                                        </div>
+                                    </div>
+                                </c:if>
 
                                 <!-- Course Actions -->
                                 <div class="course-actions">
@@ -499,29 +554,31 @@
                                             </a>
                                         </c:when>
                                         <c:otherwise>
-                                            <!-- Check enrollment status using JSTL -->
-                                            <c:set var="isEnrolled" value="false" />
-                                            <c:set var="inCart" value="false" />
-                                            <!-- Check if enrolled (assume you have enrolledCourses available) -->
-                                            <c:forEach var="enrolled" items="${enrolledCourses}">
-                                                <c:if test="${enrolled.courseId == course.courseId}">
-                                                    <c:set var="isEnrolled" value="true" />
-                                                </c:if>
-                                            </c:forEach>
-                                            <!-- Check if in cart -->
+                                            <c:set var="inCart" value="false"/>
                                             <c:forEach var="cartItem" items="${cartItems}">
                                                 <c:if test="${cartItem.productId == course.courseId}">
-                                                    <c:set var="inCart" value="true" />
+                                                    <c:set var="inCart" value="true"/>
                                                 </c:if>
                                             </c:forEach>
                                             <c:choose>
                                                 <c:when test="${isEnrolled}">
-                                                    <a href="${pageContext.request.contextPath}/user/myCourses.jsp" class="btn btn-info">
+                                                    <a href="${pageContext.request.contextPath}/course?courseId=${course.courseId}" 
+                                                       class="btn btn-info">
                                                         ✅ Enrolled - View Course
                                                     </a>
                                                 </c:when>
+                                                <c:when test="${hasPurchased && !isEnrolled}">
+                                                    <form action="${pageContext.request.contextPath}/courses" method="post" style="width: 100%;">
+                                                        <input type="hidden" name="action" value="addToCart">
+                                                        <input type="hidden" name="courseId" value="${course.courseId}">
+                                                        <button type="submit" class="btn btn-disabled" disabled>
+                                                            ✅ Purchased
+                                                        </button>
+                                                    </form>
+                                                </c:when>
                                                 <c:when test="${inCart}">
-                                                    <a href="${pageContext.request.contextPath}/user/cart.jsp" class="btn btn-success">
+                                                    <a href="${pageContext.request.contextPath}/user/cart" 
+                                                       class="btn btn-success">
                                                         🛒 In Cart - Checkout
                                                     </a>
                                                 </c:when>

@@ -199,6 +199,7 @@ public class AnalyticsPredictor {
 
             // Topic popularity factor
             if (book.getTopic() != null) {
+                
                 score += getTopicTrendScore(book.getTopic());
             }
             performanceScores.put(book.getBookId(), score);

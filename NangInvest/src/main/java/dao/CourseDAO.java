@@ -1,16 +1,23 @@
 package dao;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 import model.Course;
+import model.Lesson;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 
 /**
  * Data Access Object for Course entity
  * Extends the generic DAO pattern and provides course-specific queries
  */
 public class CourseDAO extends GenericDAOImpl<Course, Integer> {
+    
+    
 
     /**
      * Find course by name
@@ -236,5 +243,16 @@ public class CourseDAO extends GenericDAOImpl<Course, Integer> {
     public List<Course> findCoursesWithoutImages() {
         String jpql = "SELECT c FROM Course c WHERE c.imageUrl IS NULL OR c.imageUrl = '' ORDER BY c.courseName";
         return findByQuery(jpql);
+    }
+    
+    public List<Lesson> getLessonsByCourseId(int courseId) {
+        EntityManager em = getEntityManager();
+        try {
+            TypedQuery<Lesson> query = em.createQuery("SELECT l FROM Lesson l WHERE l.courseId = :courseId", Lesson.class);
+            query.setParameter("courseId", courseId);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
     }
 }

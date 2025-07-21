@@ -172,7 +172,7 @@ import="model.User"%>
   <% String rememberedUser = ""; try { rememberedUser =
   util.CookieUtil.getCookieValue(request, "rememberedUser"); if (rememberedUser
   == null) { rememberedUser = ""; } } catch (Exception e) { rememberedUser = "";
-  } %>
+  }%>
   <body>
     <div class="form-container">
       <div class="toggle-buttons">
@@ -191,7 +191,7 @@ import="model.User"%>
         <input
           type="text"
           name="username"
-          value="<%= rememberedUser %>"
+          value="<%= rememberedUser%>"
           required
         /><br />
         <label>Password:</label>
@@ -213,7 +213,7 @@ import="model.User"%>
         <label>Email:</label>
         <input type="email" name="email" required /><br />
         <label>Password:</label>
-        <主席 type="password" name="password" required /><br />
+        <input type="password" name="password" required /><br />
         <label>Age:</label>
         <input type="number" name="age" min="1" required /><br />
         <label>Expertise:</label>
@@ -229,19 +229,19 @@ import="model.User"%>
       <hr />
 
       <a
-        href="https://accounts.google.com/o/oauth2/v2/auth?scope=email%20profile&redirect_uri=http://localhost:8081/NangInvest/login/google&response pedido_type=code&client_id=422211950963-r094spj3shieq20gkajosg6lplpppehv.apps.googleusercontent.com&prompt=consent&access_type=offline"
+        href="https://accounts.google.com/o/oauth2/v2/auth?scope=email%20profile&redirect_uri=http://localhost:8081/NangInvest/login/google&response_type=code&client_id=422211950963-r094spj3shieq20gkajosg6lplpppehv.apps.googleusercontent.com&prompt=consent&access_type=offline"
         class="google-login"
       >
         Login with Google
       </a>
 
       <% String error = (String) request.getAttribute("error"); if (error !=
-      null) { %>
-      <div class="error"><%= error %></div>
+      null) {%>
+      <div class="error"><%= error%></div>
       <% } String success = (String) request.getAttribute("success"); if
-      (success != null) { %>
-      <div class="success"><%= success %></div>
-      <% } %>
+      (success != null) {%>
+      <div class="success"><%= success%></div>
+      <% }%>
     </div>
 
     <script>
@@ -260,7 +260,7 @@ import="model.User"%>
       function handleCredentialResponse(response) {
         const form = document.createElement("form");
         form.method = "POST";
-        form.action = "<%= request.getContextPath() %>/login";
+        form.action = "<%= request.getContextPath()%>/login";
 
         const tokenInput = document.createElement("input");
         tokenInput.type = "hidden";
