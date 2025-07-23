@@ -1,10 +1,10 @@
 package dao;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import java.sql.Timestamp;
 import model.UserCourses;
 import model.UserCourses.UserCoursesId;
 
@@ -63,7 +63,8 @@ public class UserCoursesDAO extends GenericDAOImpl<UserCourses, UserCoursesId> {
         EntityManager em = getEntityManager();
         try {
             TypedQuery<UserCourses> query = em.createQuery(
-                    "SELECT uc FROM UserCourses uc WHERE uc.userId = :userId ORDER BY uc.courseId", UserCourses.class);
+                    "SELECT uc FROM UserCourses uc JOIN FETCH uc.course WHERE uc.userId = :userId ORDER BY uc.courseId",
+                    UserCourses.class);
             query.setParameter("userId", userId);
             return query.getResultList();
         } finally {
@@ -78,7 +79,8 @@ public class UserCoursesDAO extends GenericDAOImpl<UserCourses, UserCoursesId> {
         EntityManager em = getEntityManager();
         try {
             TypedQuery<UserCourses> query = em.createQuery(
-                    "SELECT uc FROM UserCourses uc WHERE uc.courseId = :courseId ORDER BY uc.userId", UserCourses.class);
+                    "SELECT uc FROM UserCourses uc WHERE uc.courseId = :courseId ORDER BY uc.userId",
+                    UserCourses.class);
             query.setParameter("courseId", courseId);
             return query.getResultList();
         } finally {
@@ -154,7 +156,8 @@ public class UserCoursesDAO extends GenericDAOImpl<UserCourses, UserCoursesId> {
         EntityManager em = getEntityManager();
         try {
             em.getTransaction().begin();
-            int count = em.createQuery("DELETE FROM UserCourses uc WHERE uc.userId = :userId AND uc.courseId = :courseId")
+            int count = em
+                    .createQuery("DELETE FROM UserCourses uc WHERE uc.userId = :userId AND uc.courseId = :courseId")
                     .setParameter("userId", userId)
                     .setParameter("courseId", courseId)
                     .executeUpdate();

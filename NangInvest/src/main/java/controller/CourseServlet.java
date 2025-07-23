@@ -4,10 +4,10 @@
  */
 package controller;
 
+import java.io.IOException;
+
 import dao.CourseDAO;
 import dao.UserCoursesDAO;
-import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,19 +15,21 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Course;
 import model.User;
+import model.UserCourses;
 
 /**
  *
  * @author Admin
  */
-@WebServlet(name = "CourseServlet", urlPatterns = {"/course"})
+@WebServlet(name = "CourseServlet", urlPatterns = { "/course" })
 public class CourseServlet extends HttpServlet {
 
-   private CourseDAO courseDAO = new CourseDAO();
+    private CourseDAO courseDAO = new CourseDAO();
     private UserCoursesDAO userCoursesDAO = new UserCoursesDAO();
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         String courseIdStr = request.getParameter("courseId");
         try {
             int courseId = Integer.parseInt(courseIdStr);
@@ -40,7 +42,12 @@ public class CourseServlet extends HttpServlet {
             User user = (User) request.getSession().getAttribute("user");
             if (user != null && userCoursesDAO.isUserEnrolledInCourse(user.getUserId(), courseId)) {
                 request.setAttribute("course", course);
-                request.setAttribute("progress", userCoursesDAO.findByUserAndCourse(user.getUserId(), courseId).getProgress());
+                UserCourses userCourse = userCoursesDAO.findByUserAndCourse(user.getUserId(), courseId);
+                if (userCourse != null) {
+                    request.setAttribute("progress", userCourse.getProgress());
+                } else {
+                    request.setAttribute("progress", null);
+                }
                 request.setAttribute("lessons", courseDAO.getLessonsByCourseId(courseId));
                 request.getRequestDispatcher("/user/course.jsp").forward(request, response);
             } else {

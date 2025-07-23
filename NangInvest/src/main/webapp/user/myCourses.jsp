@@ -133,7 +133,7 @@
                             <div class="course-item">
                                 <div>
                                     <h4>
-                                        <a href="${pageContext.request.contextPath}/course?courseId=${userCourse.course.courseId}">
+                                        <a href="${pageContext.request.contextPath}/course?courseId=${userCourse.courseId}">
                                             ${userCourse.course.courseName}
                                         </a>
                                     </h4>

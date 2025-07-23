@@ -1,33 +1,33 @@
 package controller;
 
-import dao.UserCoursesDAO;
-import dao.CourseDAO;
-import model.Course;
-import model.UserCourses;
-import model.User;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
+import dao.CourseDAO;
 import dao.OrderDAO;
+import dao.UserCoursesDAO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.Course;
+import model.User;
+import model.UserCourses;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.logging.Logger;
-import java.util.logging.Level;
-
-@WebServlet(name = "MyCoursesServlet", urlPatterns = {"/user/myCourses"})
+@WebServlet(name = "MyCoursesServlet", urlPatterns = { "/user/myCourses" })
 public class MyCoursesServlet extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(MyCoursesServlet.class.getName());
